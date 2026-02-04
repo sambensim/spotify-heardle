@@ -7,6 +7,7 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 - Spotify OAuth authentication
 - Choose from your own playlists
 - **Full track playback** using Spotify Web Playback SDK
+
 - Progressive audio reveal (1s → 3s → 6s → 10s → 15s)
 - Skip to hear more without guessing
 - 3 guesses per game

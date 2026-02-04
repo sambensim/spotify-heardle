@@ -61,6 +61,7 @@ func (s *GameSession) AddGuess(guess Guess) {
 }
 
 // GetAudioDuration returns the audio duration in seconds based on guesses and skips used.
+
 // The durations array contains cumulative clip lengths: [1, 3, 6, 10, 15] seconds.
 // Each increment adds 1 more second than the previous: 1s, then +2s, then +3s, then +4s, then +5s.
 func (s *GameSession) GetAudioDuration() int {
