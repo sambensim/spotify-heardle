@@ -155,11 +155,11 @@ func TestGameSessionGetAudioDuration(t *testing.T) {
 	}{
 		{"first attempt", 0, 0, 1},
 		{"after one guess", 1, 0, 2},
-		{"after two guesses", 2, 0, 4},
+		{"after two guesses", 2, 0, 3},
 		{"after one skip", 0, 1, 2},
-		{"after one guess and one skip", 1, 1, 4},
-		{"after two skips", 0, 2, 4},
-		{"max duration", 5, 0, 16},
+		{"after one guess and one skip", 1, 1, 3},
+		{"after two skips", 0, 2, 3},
+		{"max duration", 5, 0, 5},
 	}
 
 	for _, tt := range tests {
@@ -205,8 +205,8 @@ func TestGameSessionGetTotalAudioDuration(t *testing.T) {
 		{"two guesses", 2, 0, 3},   // 1 + 2
 		{"one skip", 0, 1, 1},
 		{"one guess and one skip", 1, 1, 3}, // 1 + 2
-		{"three total", 2, 1, 7},   // 1 + 2 + 4
-		{"five total", 3, 2, 31},   // 1 + 2 + 4 + 8 + 16
+		{"three total", 2, 1, 6},   // 1 + 2 + 3
+		{"five total", 3, 2, 15},   // 1 + 2 + 3 + 4 + 5
 	}
 
 	for _, tt := range tests {
@@ -232,9 +232,9 @@ func TestGameSessionGetNextAudioDuration(t *testing.T) {
 	}{
 		{"first attempt", 0, 0, 1},
 		{"second attempt", 1, 0, 2},
-		{"third attempt", 0, 2, 4},
-		{"fourth attempt", 2, 1, 8},
-		{"fifth attempt", 3, 1, 16},
+		{"third attempt", 0, 2, 3},
+		{"fourth attempt", 2, 1, 4},
+		{"fifth attempt", 3, 1, 5},
 	}
 
 	for _, tt := range tests {
@@ -262,10 +262,10 @@ func TestGameSessionCanSkip(t *testing.T) {
 		{"can skip at start", 0, 0, false, true},
 		{"can skip after one", 1, 0, false, true},
 		{"can skip after two", 0, 2, false, true},
-		{"can skip at 31 seconds", 2, 2, false, true},     // 1+2+4+8 = 15, next is 16, total would be 31
-		{"can skip at 31 seconds total", 3, 1, false, true},  // 1+2+4+8 = 15, next is 16, total would be 31
-		{"can skip at 47 seconds", 4, 1, false, true}, // 1+2+4+8+16 = 31, next is 16, total would be 47
-		{"cannot skip at 63 seconds", 0, 6, false, false}, // 1+2+4+8+16+16 = 47, next is 16, total would be 63
+		{"can skip at 15 seconds", 2, 2, false, true},     // 1+2+3+4 = 10, next is 5, total would be 15
+		{"can skip at 15 seconds total", 3, 1, false, true},  // 1+2+3+4 = 10, next is 5, total would be 15
+		{"can skip at 20 seconds", 4, 1, false, true}, // 1+2+3+4+5 = 15, next is 5, total would be 20
+		{"cannot skip at 65 seconds", 0, 14, false, false}, // 1+2+3+4+5+5+5+5+5+5+5+5+5+5 = 60, next is 5, total would be 65
 		{"cannot skip when complete", 1, 1, true, false},
 	}
 

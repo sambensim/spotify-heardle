@@ -62,7 +62,7 @@ func (s *GameSession) AddGuess(guess Guess) {
 
 // GetAudioDuration returns the audio duration in seconds based on guesses and skips used.
 func (s *GameSession) GetAudioDuration() int {
-	durations := []int{1, 2, 4, 8, 16}
+	durations := []int{1, 2, 3, 4, 5}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
 	if totalSteps >= len(durations) {
 		return durations[len(durations)-1]
@@ -72,7 +72,7 @@ func (s *GameSession) GetAudioDuration() int {
 
 // GetTotalAudioDuration returns the cumulative audio duration revealed so far.
 func (s *GameSession) GetTotalAudioDuration() int {
-	durations := []int{1, 2, 4, 8, 16}
+	durations := []int{1, 2, 3, 4, 5}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
 	total := 0
 	for i := 0; i < totalSteps; i++ {
@@ -88,7 +88,7 @@ func (s *GameSession) GetTotalAudioDuration() int {
 
 // GetNextAudioDuration returns what the next audio duration would be.
 func (s *GameSession) GetNextAudioDuration() int {
-	durations := []int{1, 2, 4, 8, 16}
+	durations := []int{1, 2, 3, 4, 5}
 	nextStep := s.GuessesUsed + s.SkipsUsed
 	if nextStep >= len(durations) {
 		return durations[len(durations)-1]
