@@ -99,7 +99,7 @@ func (c *Client) GetUserPlaylists() ([]Playlist, error) {
 
 // GetPlaylistTracks retrieves tracks from a playlist.
 func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
-	endpoint := fmt.Sprintf("%s/playlists/%s/tracks?limit=50", apiBaseURL, playlistID)
+	endpoint := fmt.Sprintf("%s/playlists/%s/tracks?limit=100", apiBaseURL, playlistID)
 	
 	var response playlistTracksResponse
 	if err := c.makeRequest("GET", endpoint, &response); err != nil {
@@ -108,6 +108,10 @@ func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
 
 	tracks := make([]models.Track, 0, len(response.Items))
 	for _, item := range response.Items {
+		if item.Track.ID == "" {
+			continue
+		}
+		
 		artists := make([]string, len(item.Track.Artists))
 		for i, artist := range item.Track.Artists {
 			artists[i] = artist.Name

@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"spotify-heardle/models"
@@ -82,7 +83,10 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 
 	tracksWithPreview := filterTracksWithPreview(tracks)
 	if len(tracksWithPreview) == 0 {
-		http.Error(w, "No tracks with preview available", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("No preview URLs found in the first 100 tracks. Spotify doesn't provide previews for all songs. Try a different playlist with more mainstream/popular tracks."),
+		})
 		return
 	}
 

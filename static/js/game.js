@@ -41,7 +41,15 @@ async function initializeGame(playlistId) {
         gameContainer.style.display = 'block';
     } catch (err) {
         loading.style.display = 'none';
-        error.textContent = 'Failed to start game. The playlist may not have any tracks with previews.';
+        
+        let errorMessage = 'Failed to start game. ';
+        if (err.message && err.message.includes('400')) {
+            errorMessage += 'This playlist may not have tracks with preview URLs available. Spotify only provides 30-second previews for some songs. Try a playlist with popular/mainstream music.';
+        } else {
+            errorMessage += 'Please try again or choose a different playlist.';
+        }
+        
+        error.textContent = errorMessage;
         error.style.display = 'block';
         console.error('Error starting game:', err);
     }
