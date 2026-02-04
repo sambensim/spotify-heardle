@@ -150,17 +150,24 @@ func TestGameSessionGetAudioDuration(t *testing.T) {
 	tests := []struct {
 		name        string
 		guessesUsed int
+		skipsUsed   int
 		want        int
 	}{
-		{"first guess", 0, 1},
-		{"second guess", 1, 2},
-		{"third guess", 2, 4},
-		{"beyond max", 3, 4},
+		{"first attempt", 0, 0, 1},
+		{"after one guess", 1, 0, 2},
+		{"after two guesses", 2, 0, 4},
+		{"after one skip", 0, 1, 2},
+		{"after one guess and one skip", 1, 1, 4},
+		{"after two skips", 0, 2, 4},
+		{"max duration", 5, 0, 16},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			session := &GameSession{GuessesUsed: tt.guessesUsed}
+			session := &GameSession{
+				GuessesUsed: tt.guessesUsed,
+				SkipsUsed:   tt.skipsUsed,
+			}
 			got := session.GetAudioDuration()
 			if got != tt.want {
 				t.Errorf("GetAudioDuration() = %d, want %d", got, tt.want)
@@ -183,5 +190,109 @@ func TestGameSessionMarkComplete(t *testing.T) {
 
 	if !session.Won {
 		t.Error("Won = false, want true")
+	}
+}
+
+func TestGameSessionGetTotalAudioDuration(t *testing.T) {
+	tests := []struct {
+		name        string
+		guessesUsed int
+		skipsUsed   int
+		want        int
+	}{
+		{"no guesses or skips", 0, 0, 0},
+		{"one guess", 1, 0, 1},
+		{"two guesses", 2, 0, 3},   // 1 + 2
+		{"one skip", 0, 1, 1},
+		{"one guess and one skip", 1, 1, 3}, // 1 + 2
+		{"three total", 2, 1, 7},   // 1 + 2 + 4
+		{"five total", 3, 2, 31},   // 1 + 2 + 4 + 8 + 16
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			session := &GameSession{
+				GuessesUsed: tt.guessesUsed,
+				SkipsUsed:   tt.skipsUsed,
+			}
+			got := session.GetTotalAudioDuration()
+			if got != tt.want {
+				t.Errorf("GetTotalAudioDuration() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGameSessionGetNextAudioDuration(t *testing.T) {
+	tests := []struct {
+		name        string
+		guessesUsed int
+		skipsUsed   int
+		want        int
+	}{
+		{"first attempt", 0, 0, 1},
+		{"second attempt", 1, 0, 2},
+		{"third attempt", 0, 2, 4},
+		{"fourth attempt", 2, 1, 8},
+		{"fifth attempt", 3, 1, 16},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			session := &GameSession{
+				GuessesUsed: tt.guessesUsed,
+				SkipsUsed:   tt.skipsUsed,
+			}
+			got := session.GetNextAudioDuration()
+			if got != tt.want {
+				t.Errorf("GetNextAudioDuration() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGameSessionCanSkip(t *testing.T) {
+	tests := []struct {
+		name        string
+		guessesUsed int
+		skipsUsed   int
+		isComplete  bool
+		want        bool
+	}{
+		{"can skip at start", 0, 0, false, true},
+		{"can skip after one", 1, 0, false, true},
+		{"can skip after two", 0, 2, false, true},
+		{"can skip at 31 seconds", 2, 2, false, true},     // 1+2+4+8 = 15, next is 16, total would be 31
+		{"can skip at 31 seconds total", 3, 1, false, true},  // 1+2+4+8 = 15, next is 16, total would be 31
+		{"can skip at 47 seconds", 4, 1, false, true}, // 1+2+4+8+16 = 31, next is 16, total would be 47
+		{"cannot skip at 63 seconds", 0, 6, false, false}, // 1+2+4+8+16+16 = 47, next is 16, total would be 63
+		{"cannot skip when complete", 1, 1, true, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			session := &GameSession{
+				GuessesUsed: tt.guessesUsed,
+				SkipsUsed:   tt.skipsUsed,
+				IsComplete:  tt.isComplete,
+			}
+			got := session.CanSkip()
+			if got != tt.want {
+				t.Errorf("CanSkip() = %v, want %v (total=%d, next=%d)", 
+					got, tt.want, session.GetTotalAudioDuration(), session.GetNextAudioDuration())
+			}
+		})
+	}
+}
+
+func TestGameSessionSkip(t *testing.T) {
+	session := &GameSession{
+		SkipsUsed: 0,
+	}
+
+	session.Skip()
+
+	if session.SkipsUsed != 1 {
+		t.Errorf("SkipsUsed = %d, want 1", session.SkipsUsed)
 	}
 }

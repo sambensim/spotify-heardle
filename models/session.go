@@ -11,6 +11,7 @@ type GameSession struct {
 	CorrectSong Track
 	Guesses     []Guess
 	GuessesUsed int
+	SkipsUsed   int
 	IsComplete  bool
 	Won         bool
 }
@@ -39,6 +40,7 @@ func NewGameSession(sessionID, userID, playlistID string, correctSong Track) *Ga
 		CorrectSong: correctSong,
 		Guesses:     []Guess{},
 		GuessesUsed: 0,
+		SkipsUsed:   0,
 		IsComplete:  false,
 		Won:         false,
 	}
@@ -58,13 +60,54 @@ func (s *GameSession) AddGuess(guess Guess) {
 	}
 }
 
-// GetAudioDuration returns the audio duration in seconds based on guesses used.
+// GetAudioDuration returns the audio duration in seconds based on guesses and skips used.
 func (s *GameSession) GetAudioDuration() int {
-	durations := []int{1, 2, 4}
-	if s.GuessesUsed >= len(durations) {
+	durations := []int{1, 2, 4, 8, 16}
+	totalSteps := s.GuessesUsed + s.SkipsUsed
+	if totalSteps >= len(durations) {
 		return durations[len(durations)-1]
 	}
-	return durations[s.GuessesUsed]
+	return durations[totalSteps]
+}
+
+// GetTotalAudioDuration returns the cumulative audio duration revealed so far.
+func (s *GameSession) GetTotalAudioDuration() int {
+	durations := []int{1, 2, 4, 8, 16}
+	totalSteps := s.GuessesUsed + s.SkipsUsed
+	total := 0
+	for i := 0; i < totalSteps; i++ {
+		if i < len(durations) {
+			total += durations[i]
+		} else {
+			// After exhausting the array, keep using the last duration
+			total += durations[len(durations)-1]
+		}
+	}
+	return total
+}
+
+// GetNextAudioDuration returns what the next audio duration would be.
+func (s *GameSession) GetNextAudioDuration() int {
+	durations := []int{1, 2, 4, 8, 16}
+	nextStep := s.GuessesUsed + s.SkipsUsed
+	if nextStep >= len(durations) {
+		return durations[len(durations)-1]
+	}
+	return durations[nextStep]
+}
+
+// CanSkip returns true if the user can still skip (next skip won't exceed 60 seconds total).
+func (s *GameSession) CanSkip() bool {
+	if s.IsComplete {
+		return false
+	}
+	nextTotal := s.GetTotalAudioDuration() + s.GetNextAudioDuration()
+	return nextTotal <= 60
+}
+
+// Skip increments the skip counter.
+func (s *GameSession) Skip() {
+	s.SkipsUsed++
 }
 
 // MarkComplete marks the session as complete.
