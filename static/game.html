@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game - Spotify Heardle</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Spotify Heardle</h1>
+            <button class="btn-secondary" onclick="newGame()">New Game</button>
+        </div>
+        
+        <div class="content">
+            <div id="loading" class="loading">Starting game...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            
+            <div id="game-container" style="display: none;">
+                <div class="game-info">
+                    <div class="guesses-info">
+                        Guesses: <span id="guesses-used">0</span> / 3
+                    </div>
+                    <div class="audio-duration">
+                        Audio: <span id="audio-duration">1</span>s
+                    </div>
+                </div>
+                
+                <div class="audio-player">
+                    <audio id="audio" preload="auto"></audio>
+                    <button id="play-btn" class="btn-primary btn-large" onclick="playAudio()">
+                        ▶ Play
+                    </button>
+                </div>
+                
+                <div id="guesses-list" class="guesses-list"></div>
+                
+                <div id="search-section" class="search-section">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Search for a song..." 
+                        autocomplete="off"
+                    >
+                    <div id="search-results" class="search-results"></div>
+                </div>
+                
+                <div class="game-actions">
+                    <button id="skip-btn" class="btn-secondary" onclick="skipGame()">
+                        Skip & Reveal
+                    </button>
+                </div>
+                
+                <div id="result-modal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <h2 id="result-title"></h2>
+                        <div id="result-song" class="result-song"></div>
+                        <button class="btn-primary" onclick="newGame()">Play Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/game.js"></script>
+</body>
+</html>
