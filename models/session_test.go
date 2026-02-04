@@ -202,11 +202,11 @@ func TestGameSessionGetTotalAudioDuration(t *testing.T) {
 	}{
 		{"no guesses or skips", 0, 0, 0},
 		{"one guess", 1, 0, 1},
-		{"two guesses", 2, 0, 3},   // 1 + 2
+		{"two guesses", 2, 0, 3},   // cumulative: 1s + 2s more
 		{"one skip", 0, 1, 1},
-		{"one guess and one skip", 1, 1, 3}, // 1 + 2
-		{"three total", 2, 1, 6},   // 1 + 2 + 3
-		{"five total", 3, 2, 15},   // 1 + 2 + 3 + 4 + 5
+		{"one guess and one skip", 1, 1, 3}, // cumulative: 1s + 2s more
+		{"three total", 2, 1, 6},   // cumulative: 1s + 2s + 3s more
+		{"five total", 3, 2, 15},   // cumulative: 1s + 2s + 3s + 4s + 5s more
 	}
 
 	for _, tt := range tests {
@@ -262,10 +262,10 @@ func TestGameSessionCanSkip(t *testing.T) {
 		{"can skip at start", 0, 0, false, true},
 		{"can skip after one", 1, 0, false, true},
 		{"can skip after two", 0, 2, false, true},
-		{"can skip at 15 seconds", 2, 2, false, true},     // 1+2+3+4 = 10, next is 5, total would be 15
-		{"can skip at 15 seconds total", 3, 1, false, true},  // 1+2+3+4 = 10, next is 5, total would be 15
-		{"can skip at 20 seconds", 4, 1, false, true}, // 1+2+3+4+5 = 15, next is 5, total would be 20
-		{"cannot skip at 65 seconds", 0, 14, false, false}, // 1+2+3+4+5+5+5+5+5+5+5+5+5+5 = 60, next is 5, total would be 65
+		{"can skip at 15 seconds", 2, 2, false, true},     // cumulative: 10s revealed, next is 15s total
+		{"can skip at 15 seconds total", 3, 1, false, true},  // cumulative: 10s revealed, next is 15s total
+		{"can skip at 20 seconds", 4, 1, false, true}, // cumulative: 15s revealed, next would be 20s total (15s + 5s more)
+		{"cannot skip at 65 seconds", 0, 14, false, false}, // cumulative: 60s revealed, next would be 65s total (60s + 5s more)
 		{"cannot skip when complete", 1, 1, true, false},
 	}
 

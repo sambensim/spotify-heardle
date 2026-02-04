@@ -61,6 +61,8 @@ func (s *GameSession) AddGuess(guess Guess) {
 }
 
 // GetAudioDuration returns the audio duration in seconds based on guesses and skips used.
+// The durations array contains cumulative clip lengths: [1, 3, 6, 10, 15] seconds.
+// Each increment adds 1 more second than the previous: 1s, then +2s, then +3s, then +4s, then +5s.
 func (s *GameSession) GetAudioDuration() int {
 	durations := []int{1, 3, 6, 10, 15}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
@@ -71,6 +73,7 @@ func (s *GameSession) GetAudioDuration() int {
 }
 
 // GetTotalAudioDuration returns the cumulative audio duration revealed so far.
+// Returns the cumulative duration from the durations array based on steps completed.
 func (s *GameSession) GetTotalAudioDuration() int {
 	durations := []int{1, 3, 6, 10, 15}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
@@ -86,6 +89,7 @@ func (s *GameSession) GetTotalAudioDuration() int {
 }
 
 // GetNextAudioDuration returns what the next audio duration would be.
+// Returns the cumulative duration at the next step.
 func (s *GameSession) GetNextAudioDuration() int {
 	durations := []int{1, 3, 6, 10, 15}
 	nextStep := s.GuessesUsed + s.SkipsUsed
