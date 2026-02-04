@@ -104,13 +104,13 @@ func (s *GameSession) GetNextAudioDuration() int {
 	return durations[nextStep]
 }
 
-// CanSkip returns true if the user can still skip (next skip won't exceed 60 seconds total).
+// CanSkip returns true if the user can still skip (next skip won't exceed 20 seconds total).
 func (s *GameSession) CanSkip() bool {
 	if s.IsComplete {
 		return false
 	}
 	nextTotal := s.GetTotalAudioDuration() + s.GetNextAudioDuration()
-	return nextTotal <= 60
+	return nextTotal <= 20
 }
 
 // Skip increments the skip counter.
