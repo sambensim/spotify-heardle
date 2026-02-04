@@ -67,7 +67,9 @@ func (s *GameSession) GetAudioDuration() int {
 	durations := []int{1, 3, 6, 10, 15}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
 	if totalSteps >= len(durations) {
-		return durations[len(durations)-1]
+		// After exhausting the array, continue adding 5 seconds per step
+		excess := totalSteps - len(durations) + 1
+		return durations[len(durations)-1] + (excess * 5)
 	}
 	return durations[totalSteps]
 }
@@ -94,7 +96,9 @@ func (s *GameSession) GetNextAudioDuration() int {
 	durations := []int{1, 3, 6, 10, 15}
 	nextStep := s.GuessesUsed + s.SkipsUsed
 	if nextStep >= len(durations) {
-		return durations[len(durations)-1]
+		// After exhausting the array, continue adding 5 seconds per step
+		excess := nextStep - len(durations) + 1
+		return durations[len(durations)-1] + (excess * 5)
 	}
 	return durations[nextStep]
 }

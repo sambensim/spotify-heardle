@@ -159,7 +159,8 @@ func TestGameSessionGetAudioDuration(t *testing.T) {
 		{"after one skip", 0, 1, 3},
 		{"after one guess and one skip", 1, 1, 6},
 		{"after two skips", 0, 2, 6},
-		{"max duration", 5, 0, 15},
+		{"max duration", 5, 0, 20},  // 15 + (1 * 5)
+		{"beyond max", 6, 0, 25},     // 15 + (2 * 5)
 	}
 
 	for _, tt := range tests {
@@ -235,6 +236,7 @@ func TestGameSessionGetNextAudioDuration(t *testing.T) {
 		{"third attempt", 0, 2, 6},
 		{"fourth attempt", 2, 1, 10},
 		{"fifth attempt", 3, 1, 15},
+		{"beyond fifth", 4, 1, 20}, // 15 + (1 * 5)
 	}
 
 	for _, tt := range tests {
