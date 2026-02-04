@@ -17,10 +17,10 @@ type GameSession struct {
 
 // Track represents a Spotify track.
 type Track struct {
-	ID         string
-	Name       string
-	Artists    []string
-	PreviewURL string
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Artists    []string `json:"artists"`
+	PreviewURL string   `json:"previewUrl"`
 }
 
 // Guess represents a user's guess.

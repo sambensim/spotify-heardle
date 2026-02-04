@@ -37,6 +37,7 @@ async function performSearch(query) {
     
     try {
         const tracks = await searchTracks(query);
+        console.log('Search results:', tracks);
         currentSearchResults = tracks;
         
         searchResults.innerHTML = '';
@@ -48,6 +49,7 @@ async function performSearch(query) {
         }
 
         tracks.forEach(track => {
+            console.log('Track:', track);
             const item = document.createElement('div');
             item.className = 'search-result-item';
             item.onclick = () => selectTrack(track);
