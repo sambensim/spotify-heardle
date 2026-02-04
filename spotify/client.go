@@ -182,7 +182,7 @@ func (c *Client) GetLikedSongs() ([]models.Track, error) {
 			continue
 		}
 		
-		artists := make([]string, 0)
+		var artists []string
 		if len(item.Track.Artists) > 0 {
 			artists = make([]string, len(item.Track.Artists))
 			for i, artist := range item.Track.Artists {

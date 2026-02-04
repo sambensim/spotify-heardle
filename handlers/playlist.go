@@ -37,7 +37,7 @@ func (h *PlaylistHandler) HandleGetPlaylists(w http.ResponseWriter, r *http.Requ
 		ID:   "liked_songs",
 		Name: "Liked Songs",
 		Images: []spotify.PlaylistImage{},
-		Tracks: spotify.TracksInfo{Total: 0}, // We don't know the count without fetching
+		Tracks: spotify.TracksInfo{Total: 0}, // Total is set to 0 to avoid an additional API call
 	}
 
 	// Prepend liked songs to the list
