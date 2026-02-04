@@ -8,7 +8,7 @@ import (
 func TestNewGameSession(t *testing.T) {
 	sessionID := "session123"
 	userID := "user456"
-	playlistID := "playlist789"
+	playlistIDs := []string{"playlist789"}
 	correctSong := Track{
 		ID:         "track1",
 		Name:       "Song Name",
@@ -16,7 +16,7 @@ func TestNewGameSession(t *testing.T) {
 		PreviewURL: "http://preview.url",
 	}
 
-	session := NewGameSession(sessionID, userID, playlistID, correctSong)
+	session := NewGameSession(sessionID, userID, playlistIDs, correctSong)
 
 	if session.ID != sessionID {
 		t.Errorf("ID = %q, want %q", session.ID, sessionID)
@@ -26,8 +26,8 @@ func TestNewGameSession(t *testing.T) {
 		t.Errorf("UserID = %q, want %q", session.UserID, userID)
 	}
 
-	if session.PlaylistID != playlistID {
-		t.Errorf("PlaylistID = %q, want %q", session.PlaylistID, playlistID)
+	if len(session.PlaylistIDs) != 1 || session.PlaylistIDs[0] != playlistIDs[0] {
+		t.Errorf("PlaylistIDs = %v, want %v", session.PlaylistIDs, playlistIDs)
 	}
 
 	if session.CorrectSong.ID != correctSong.ID {
@@ -53,12 +53,12 @@ func TestNewGameSession(t *testing.T) {
 
 func TestGameSessionAddGuess(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 0,
-		IsComplete:  false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  0,
+		IsComplete:   false,
 	}
 
 	guess := Guess{
@@ -84,13 +84,13 @@ func TestGameSessionAddGuess(t *testing.T) {
 
 func TestGameSessionAddCorrectGuess(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 0,
-		IsComplete:  false,
-		Won:         false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  0,
+		IsComplete:   false,
+		Won:          false,
 	}
 
 	correctGuess := Guess{
@@ -112,13 +112,13 @@ func TestGameSessionAddCorrectGuess(t *testing.T) {
 
 func TestGameSessionAddGuessReachesMax(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 2,
-		IsComplete:  false,
-		Won:         false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  2,
+		IsComplete:   false,
+		Won:          false,
 		Guesses: []Guess{
 			{TrackID: "wrong1", IsCorrect: false},
 			{TrackID: "wrong2", IsCorrect: false},
