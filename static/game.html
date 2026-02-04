@@ -6,6 +6,7 @@
     <title>Game - Spotify Heardle</title>
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/game.css">
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
     <div class="container">
@@ -29,10 +30,10 @@
                 </div>
                 
                 <div class="audio-player">
-                    <audio id="audio" preload="auto"></audio>
                     <button id="play-btn" class="btn-primary btn-large" onclick="playAudio()">
                         ▶ Play
                     </button>
+                    <div id="player-status" class="player-status"></div>
                 </div>
                 
                 <div id="guesses-list" class="guesses-list"></div>
@@ -67,6 +68,7 @@
     
     <script src="/js/api.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/player.js"></script>
     <script src="/js/search.js"></script>
     <script src="/js/game.js"></script>
 </body>

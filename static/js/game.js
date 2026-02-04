@@ -3,7 +3,7 @@ let gameState = {
     sessionId: null,
     guessesUsed: 0,
     audioDuration: 1,
-    previewUrl: null,
+    trackUri: null,
     isComplete: false,
 };
 
@@ -16,9 +16,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    showLoadingMessage('Initializing Spotify player...');
+    await initializeSpotifyPlayer();
+    
+    showLoadingMessage('Starting game...');
     await initializeGame(playlistId);
     initSearch();
 });
+
+function showLoadingMessage(message) {
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.textContent = message;
+        loading.style.display = 'block';
+    }
+}
 
 async function initializeGame(playlistId) {
     const loading = document.getElementById('loading');
@@ -30,10 +42,7 @@ async function initializeGame(playlistId) {
         
         gameState.sessionId = response.sessionId;
         gameState.audioDuration = response.audioDuration;
-        gameState.previewUrl = response.previewUrl;
-
-        const audio = document.getElementById('audio');
-        audio.src = response.previewUrl;
+        gameState.trackUri = response.trackUri;
 
         updateGameUI();
 
@@ -41,35 +50,35 @@ async function initializeGame(playlistId) {
         gameContainer.style.display = 'block';
     } catch (err) {
         loading.style.display = 'none';
-        
-        let errorMessage = 'Failed to start game. ';
-        if (err.message && err.message.includes('400')) {
-            errorMessage += 'This playlist may not have tracks with preview URLs available. Spotify only provides 30-second previews for some songs. Try a playlist with popular/mainstream music.';
-        } else {
-            errorMessage += 'Please try again or choose a different playlist.';
-        }
-        
-        error.textContent = errorMessage;
+        error.textContent = 'Failed to start game. Please try a different playlist or check your Spotify Premium subscription.';
         error.style.display = 'block';
         console.error('Error starting game:', err);
     }
 }
 
-function playAudio() {
-    const audio = document.getElementById('audio');
+async function playAudio() {
+    if (!playerReady) {
+        showError('Player not ready. Please wait...');
+        return;
+    }
+
     const playBtn = document.getElementById('play-btn');
-
-    audio.currentTime = 0;
-    audio.play();
-
     playBtn.disabled = true;
     playBtn.textContent = '▶ Playing...';
 
-    setTimeout(() => {
-        audio.pause();
+    try {
+        await playTrackWithLimit(gameState.trackUri, gameState.audioDuration);
+        
+        setTimeout(() => {
+            playBtn.disabled = false;
+            playBtn.textContent = '▶ Play Again';
+        }, gameState.audioDuration * 1000 + 500);
+    } catch (error) {
+        console.error('Playback failed:', error);
+        showError('Playback failed. Make sure Spotify is not playing elsewhere.');
         playBtn.disabled = false;
         playBtn.textContent = '▶ Play';
-    }, gameState.audioDuration * 1000);
+    }
 }
 
 async function handleGuess(trackId, trackName) {

@@ -50,3 +50,7 @@ async function skipCurrentGame(sessionId) {
 async function logout() {
     return fetchAPI('/api/logout', { method: 'POST' });
 }
+
+async function getAccessToken() {
+    return fetchAPI('/api/token');
+}
