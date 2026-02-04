@@ -9,9 +9,30 @@ let gameState = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const playlistId = urlParams.get('playlist');
+    const playlistsParam = urlParams.get('playlists');
+    const legacyPlaylistId = urlParams.get('playlist');
 
-    if (!playlistId) {
+    let playlistIds = [];
+    
+    // Support new multi-playlist format
+    if (playlistsParam) {
+        try {
+            playlistIds = JSON.parse(decodeURIComponent(playlistsParam));
+        } catch (e) {
+            showError('Invalid playlist parameter');
+            return;
+        }
+    } 
+    // Backward compatibility with old single playlist format
+    else if (legacyPlaylistId) {
+        playlistIds = [legacyPlaylistId];
+    } 
+    else {
+        showError('No playlist selected');
+        return;
+    }
+
+    if (!Array.isArray(playlistIds) || playlistIds.length === 0) {
         showError('No playlist selected');
         return;
     }
@@ -20,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeSpotifyPlayer();
     
     showLoadingMessage('Starting game...');
-    await initializeGame(playlistId);
+    await initializeGame(playlistIds);
     initSearch();
 });
 
@@ -32,13 +53,13 @@ function showLoadingMessage(message) {
     }
 }
 
-async function initializeGame(playlistId) {
+async function initializeGame(playlistIds) {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const gameContainer = document.getElementById('game-container');
 
     try {
-        const response = await startGame(playlistId);
+        const response = await startGame(playlistIds);
         
         gameState.sessionId = response.sessionId;
         gameState.audioDuration = response.audioDuration;
