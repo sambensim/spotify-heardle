@@ -5,7 +5,9 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 ## Features
 
 - Spotify OAuth authentication
-- Choose from your own playlists
+- **Multiple playlist selection** - Choose one or more playlists to play from
+- **Liked Songs support** - Play using your saved/liked tracks
+- Songs are randomly selected from the combined pool of all selected playlists
 - **Full track playback** using Spotify Web Playback SDK
 - Progressive audio reveal (1s → 2s → 4s)
 - 3 guesses per game
