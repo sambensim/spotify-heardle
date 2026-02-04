@@ -25,7 +25,7 @@ type startGameRequest struct {
 type startGameResponse struct {
 	SessionID     string `json:"sessionId"`
 	AudioDuration int    `json:"audioDuration"`
-	PreviewURL    string `json:"previewUrl"`
+	TrackURI      string `json:"trackUri"`
 }
 
 type submitGuessRequest struct {
@@ -81,16 +81,15 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tracksWithPreview := filterTracksWithPreview(tracks)
-	if len(tracksWithPreview) == 0 {
+	if len(tracks) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": fmt.Sprintf("No preview URLs found in the first 100 tracks. Spotify doesn't provide previews for all songs. Try a different playlist with more mainstream/popular tracks."),
+			"error": "Playlist is empty or has no valid tracks.",
 		})
 		return
 	}
 
-	selectedTrack := selectRandomTrack(tracksWithPreview)
+	selectedTrack := selectRandomTrack(tracks)
 
 	sessionID, err := generateSessionID()
 	if err != nil {
@@ -104,10 +103,12 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	trackURI := fmt.Sprintf("spotify:track:%s", selectedTrack.ID)
+
 	response := startGameResponse{
 		SessionID:     sessionID,
 		AudioDuration: session.GetAudioDuration(),
-		PreviewURL:    selectedTrack.PreviewURL,
+		TrackURI:      trackURI,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

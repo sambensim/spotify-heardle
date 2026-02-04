@@ -133,6 +133,20 @@ func (h *AuthHandler) GetUserFromSession(r *http.Request) (*models.User, error) 
 	return user, nil
 }
 
+// HandleGetToken returns the user's access token for SDK initialization.
+func (h *AuthHandler) HandleGetToken(w http.ResponseWriter, r *http.Request) {
+	user, err := h.GetUserFromSession(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"accessToken": user.Token.AccessToken,
+	})
+}
+
 func generateState() (string, error) {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {

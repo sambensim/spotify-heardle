@@ -27,6 +27,7 @@ func main() {
 	mux.HandleFunc("/login", authHandler.HandleLogin)
 	mux.HandleFunc("/callback", authHandler.HandleCallback)
 	mux.HandleFunc("/api/logout", authHandler.HandleLogout)
+	mux.HandleFunc("/api/token", authHandler.HandleGetToken)
 	mux.HandleFunc("/api/playlists", playlistHandler.HandleGetPlaylists)
 	mux.HandleFunc("/api/search", searchHandler.HandleSearch)
 	mux.HandleFunc("/api/game/start", gameHandler.HandleStartGame)

@@ -3,6 +3,7 @@ package spotify
 
 import (
 	"spotify-heardle/models"
+	"strings"
 	"testing"
 	"time"
 )
@@ -44,6 +45,14 @@ func TestGetAuthURL(t *testing.T) {
 	expectedPrefix := "https://accounts.spotify.com/authorize"
 	if len(url) < len(expectedPrefix) || url[:len(expectedPrefix)] != expectedPrefix {
 		t.Errorf("URL doesn't start with expected prefix. Got: %s", url)
+	}
+	
+	if !strings.Contains(url, "streaming") {
+		t.Error("URL missing 'streaming' scope")
+	}
+	
+	if !strings.Contains(url, "user-modify-playback-state") {
+		t.Error("URL missing 'user-modify-playback-state' scope")
 	}
 }
 

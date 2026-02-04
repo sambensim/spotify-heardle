@@ -46,6 +46,10 @@ func (a *AuthManager) GetAuthURL(state string) string {
 		"user-read-private",
 		"playlist-read-private",
 		"playlist-read-collaborative",
+		"streaming",
+		"user-read-email",
+		"user-modify-playback-state",
+		"user-read-playback-state",
 	}
 
 	params := url.Values{}

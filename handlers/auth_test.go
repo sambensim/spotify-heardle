@@ -71,6 +71,26 @@ func TestGenerateState(t *testing.T) {
 	}
 }
 
+func TestHandleGetTokenNoAuth(t *testing.T) {
+	cfg := &config.Config{
+		SpotifyClientID:     "test_id",
+		SpotifyClientSecret: "test_secret",
+		SpotifyRedirectURI:  "http://localhost:8080/callback",
+		SessionSecret:       "test_session_secret",
+	}
+	store := storage.NewMemoryStore()
+	handler := NewAuthHandler(cfg, store)
+
+	req := httptest.NewRequest("GET", "/api/token", nil)
+	w := httptest.NewRecorder()
+
+	handler.HandleGetToken(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
 func TestGenerateSessionID(t *testing.T) {
 	id1, err := generateSessionID()
 	if err != nil {
