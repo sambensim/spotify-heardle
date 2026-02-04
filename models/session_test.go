@@ -155,11 +155,12 @@ func TestGameSessionGetAudioDuration(t *testing.T) {
 	}{
 		{"first attempt", 0, 0, 1},
 		{"after one guess", 1, 0, 3},
-		{"after two guesses", 2, 0, 7},
+		{"after two guesses", 2, 0, 6},
 		{"after one skip", 0, 1, 3},
-		{"after one guess and one skip", 1, 1, 7},
-		{"after two skips", 0, 2, 7},
-		{"max duration", 5, 0, 31},
+		{"after one guess and one skip", 1, 1, 6},
+		{"after two skips", 0, 2, 6},
+		{"max duration", 5, 0, 20},  // 15 + (1 * 5)
+		{"beyond max", 6, 0, 25},     // 15 + (2 * 5)
 	}
 
 	for _, tt := range tests {
@@ -202,11 +203,11 @@ func TestGameSessionGetTotalAudioDuration(t *testing.T) {
 	}{
 		{"no guesses or skips", 0, 0, 0},
 		{"one guess", 1, 0, 1},
-		{"two guesses", 2, 0, 4},   // 1 + 3
+		{"two guesses", 2, 0, 3},   // cumulative: 1s + 2s more
 		{"one skip", 0, 1, 1},
-		{"one guess and one skip", 1, 1, 4}, // 1 + 3
-		{"three total", 2, 1, 11},   // 1 + 3 + 7
-		{"five total", 3, 2, 57},   // 1 + 3 + 7 + 15 + 31
+		{"one guess and one skip", 1, 1, 3}, // cumulative: 1s + 2s more
+		{"three total", 2, 1, 6},   // cumulative: 1s + 2s + 3s more
+		{"five total", 3, 2, 15},   // cumulative: 1s + 2s + 3s + 4s + 5s more
 	}
 
 	for _, tt := range tests {
@@ -232,9 +233,10 @@ func TestGameSessionGetNextAudioDuration(t *testing.T) {
 	}{
 		{"first attempt", 0, 0, 1},
 		{"second attempt", 1, 0, 3},
-		{"third attempt", 0, 2, 7},
-		{"fourth attempt", 2, 1, 15},
-		{"fifth attempt", 3, 1, 31},
+		{"third attempt", 0, 2, 6},
+		{"fourth attempt", 2, 1, 10},
+		{"fifth attempt", 3, 1, 15},
+		{"beyond fifth", 4, 1, 20}, // 15 + (1 * 5)
 	}
 
 	for _, tt := range tests {
@@ -262,9 +264,10 @@ func TestGameSessionCanSkip(t *testing.T) {
 		{"can skip at start", 0, 0, false, true},
 		{"can skip after one", 1, 0, false, true},
 		{"can skip after two", 0, 2, false, true},
-		{"can skip at 11 seconds", 2, 1, false, true},     // 1+3+7 = 11, next is 15, total would be 26
-		{"can skip at 26 seconds total", 3, 0, false, true},  // 1+3+7 = 11, next is 15, total would be 26
-		{"cannot skip at 57 seconds", 3, 2, false, false}, // 1+3+7+15+31 = 57, next is 31, total would be 88
+		{"can skip at 15 seconds", 2, 2, false, true},     // cumulative: 10s revealed, next is 15s total
+		{"can skip at 15 seconds total", 3, 1, false, true},  // cumulative: 10s revealed, next is 15s total
+		{"can skip at 20 seconds", 4, 1, false, true}, // cumulative: 15s revealed, next would be 20s total (15s + 5s more)
+		{"cannot skip at 65 seconds", 0, 14, false, false}, // cumulative: 60s revealed, next would be 65s total (60s + 5s more)
 		{"cannot skip when complete", 1, 1, true, false},
 	}
 

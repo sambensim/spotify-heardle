@@ -61,39 +61,45 @@ func (s *GameSession) AddGuess(guess Guess) {
 }
 
 // GetAudioDuration returns the audio duration in seconds based on guesses and skips used.
-// Durations follow a geometric increment pattern: +1s, +2s, +4s, +8s, +16s
-// Resulting in durations: 1s, 3s, 7s, 15s, 31s
+
+// The durations array contains cumulative clip lengths: [1, 3, 6, 10, 15] seconds.
+// Each increment adds 1 more second than the previous: 1s, then +2s, then +3s, then +4s, then +5s.
 func (s *GameSession) GetAudioDuration() int {
-	durations := []int{1, 3, 7, 15, 31}
+	durations := []int{1, 3, 6, 10, 15}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
 	if totalSteps >= len(durations) {
-		return durations[len(durations)-1]
+		// After exhausting the array, continue adding 5 seconds per step
+		excess := totalSteps - len(durations) + 1
+		return durations[len(durations)-1] + (excess * 5)
 	}
 	return durations[totalSteps]
 }
 
 // GetTotalAudioDuration returns the cumulative audio duration revealed so far.
+// Returns the cumulative duration from the durations array based on steps completed.
 func (s *GameSession) GetTotalAudioDuration() int {
-	durations := []int{1, 3, 7, 15, 31}
+	durations := []int{1, 3, 6, 10, 15}
 	totalSteps := s.GuessesUsed + s.SkipsUsed
-	total := 0
-	for i := 0; i < totalSteps; i++ {
-		if i < len(durations) {
-			total += durations[i]
-		} else {
-			// After exhausting the array, keep using the last duration
-			total += durations[len(durations)-1]
-		}
+	if totalSteps == 0 {
+		return 0
 	}
-	return total
+	if totalSteps >= len(durations) {
+		// After exhausting the array, continue adding the increment (5 seconds)
+		excess := totalSteps - len(durations)
+		return durations[len(durations)-1] + (excess * 5)
+	}
+	return durations[totalSteps-1]
 }
 
 // GetNextAudioDuration returns what the next audio duration would be.
+// Returns the cumulative duration at the next step.
 func (s *GameSession) GetNextAudioDuration() int {
-	durations := []int{1, 3, 7, 15, 31}
+	durations := []int{1, 3, 6, 10, 15}
 	nextStep := s.GuessesUsed + s.SkipsUsed
 	if nextStep >= len(durations) {
-		return durations[len(durations)-1]
+		// After exhausting the array, continue adding 5 seconds per step
+		excess := nextStep - len(durations) + 1
+		return durations[len(durations)-1] + (excess * 5)
 	}
 	return durations[nextStep]
 }
