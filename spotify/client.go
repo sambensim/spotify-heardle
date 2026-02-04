@@ -112,9 +112,12 @@ func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
 			continue
 		}
 		
-		artists := make([]string, len(item.Track.Artists))
-		for i, artist := range item.Track.Artists {
-			artists[i] = artist.Name
+		artists := make([]string, 0)
+		if len(item.Track.Artists) > 0 {
+			artists = make([]string, len(item.Track.Artists))
+			for i, artist := range item.Track.Artists {
+				artists[i] = artist.Name
+			}
 		}
 
 		tracks = append(tracks, models.Track{
@@ -139,9 +142,12 @@ func (c *Client) SearchTracks(query string) ([]models.Track, error) {
 
 	tracks := make([]models.Track, 0, len(response.Tracks.Items))
 	for _, item := range response.Tracks.Items {
-		artists := make([]string, len(item.Artists))
-		for i, artist := range item.Artists {
-			artists[i] = artist.Name
+		artists := make([]string, 0)
+		if len(item.Artists) > 0 {
+			artists = make([]string, len(item.Artists))
+			for i, artist := range item.Artists {
+				artists[i] = artist.Name
+			}
 		}
 
 		tracks = append(tracks, models.Track{

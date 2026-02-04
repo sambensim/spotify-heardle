@@ -52,10 +52,12 @@ async function performSearch(query) {
             item.className = 'search-result-item';
             item.onclick = () => selectTrack(track);
 
-            const artists = track.artists.join(', ');
+            const artists = track.artists && track.artists.length > 0 
+                ? track.artists.join(', ') 
+                : 'Unknown Artist';
             
             item.innerHTML = `
-                <div class="result-name">${track.name}</div>
+                <div class="result-name">${track.name || 'Unknown Track'}</div>
                 <div class="result-artist">${artists}</div>
             `;
 
