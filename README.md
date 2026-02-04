@@ -32,6 +32,12 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 
 3. **Run the Application**
    ```bash
+   ./run.sh
+   ```
+   
+   Or manually with:
+   ```bash
+   source .env
    go run main.go
    ```
 
