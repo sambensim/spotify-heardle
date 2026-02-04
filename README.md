@@ -6,6 +6,7 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 
 - Spotify OAuth authentication
 - Choose from your own playlists
+- **Full track playback** using Spotify Web Playback SDK
 - Progressive audio reveal (1s → 2s → 4s)
 - 3 guesses per game
 - Search Spotify tracks to make guesses
@@ -14,6 +15,7 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 ## Prerequisites
 
 - Go 1.21 or higher
+- **Spotify Premium Account** (required for Web Playback SDK)
 - Spotify Developer Account
 
 ## Setup
@@ -68,8 +70,34 @@ go test ./path/to/package -run TestName
 └── static/              # Frontend assets
     ├── css/
     ├── js/
+    │   ├── api.js       # Backend API client
+    │   ├── player.js    # Spotify Web Playback SDK
+    │   ├── game.js      # Game logic
+    │   └── ...
     └── *.html
 ```
+
+## Technical Notes
+
+- **Web Playback SDK**: Requires Spotify Premium and uses the browser-based player
+- **Authentication**: OAuth 2.0 with PKCE flow
+- **Storage**: In-memory (sessions cleared on restart)
+- **Audio Duration**: Progressively reveals 1s → 2s → 4s clips
+
+## Troubleshooting
+
+**"Player not ready"**
+- Ensure you have Spotify Premium
+- Close any other Spotify players (app, web)
+- Refresh the page
+
+**"Account error"**
+- Spotify Premium is required for Web Playback SDK
+- Verify your account at https://www.spotify.com/account
+
+**"Authentication error"**
+- Log out and log in again
+- Check that redirect URI matches in Spotify Dashboard
 
 ## License
 
