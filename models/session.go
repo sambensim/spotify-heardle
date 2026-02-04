@@ -5,14 +5,14 @@ const MaxGuesses = 3
 
 // GameSession represents an active game session.
 type GameSession struct {
-	ID          string
-	UserID      string
-	PlaylistID  string
-	CorrectSong Track
-	Guesses     []Guess
-	GuessesUsed int
-	IsComplete  bool
-	Won         bool
+	ID           string
+	UserID       string
+	PlaylistIDs  []string
+	CorrectSong  Track
+	Guesses      []Guess
+	GuessesUsed  int
+	IsComplete   bool
+	Won          bool
 }
 
 // Track represents a Spotify track.
@@ -31,16 +31,16 @@ type Guess struct {
 }
 
 // NewGameSession creates a new game session.
-func NewGameSession(sessionID, userID, playlistID string, correctSong Track) *GameSession {
+func NewGameSession(sessionID, userID string, playlistIDs []string, correctSong Track) *GameSession {
 	return &GameSession{
-		ID:          sessionID,
-		UserID:      userID,
-		PlaylistID:  playlistID,
-		CorrectSong: correctSong,
-		Guesses:     []Guess{},
-		GuessesUsed: 0,
-		IsComplete:  false,
-		Won:         false,
+		ID:           sessionID,
+		UserID:       userID,
+		PlaylistIDs:  playlistIDs,
+		CorrectSong:  correctSong,
+		Guesses:      []Guess{},
+		GuessesUsed:  0,
+		IsComplete:   false,
+		Won:          false,
 	}
 }
 

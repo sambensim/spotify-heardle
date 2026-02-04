@@ -19,7 +19,7 @@ type GameHandler struct {
 }
 
 type startGameRequest struct {
-	PlaylistID string `json:"playlistId"`
+	PlaylistIDs []string `json:"playlistIds"`
 }
 
 type startGameResponse struct {
@@ -74,8 +74,13 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.PlaylistIDs) == 0 {
+		http.Error(w, "At least one playlist ID required", http.StatusBadRequest)
+		return
+	}
+
 	client := spotify.NewClient(user.Token)
-	tracks, err := client.GetPlaylistTracks(req.PlaylistID)
+	tracks, err := client.GetMultiplePlaylistsTracks(req.PlaylistIDs)
 	if err != nil {
 		http.Error(w, "Failed to get playlist tracks", http.StatusInternalServerError)
 		return
@@ -84,7 +89,7 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 	if len(tracks) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Playlist is empty or has no valid tracks.",
+			"error": "Playlists are empty or have no valid tracks.",
 		})
 		return
 	}
@@ -97,7 +102,7 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := models.NewGameSession(sessionID, user.ID, req.PlaylistID, selectedTrack)
+	session := models.NewGameSession(sessionID, user.ID, req.PlaylistIDs, selectedTrack)
 	if err := h.store.SaveSession(session); err != nil {
 		http.Error(w, "Failed to save session", http.StatusInternalServerError)
 		return

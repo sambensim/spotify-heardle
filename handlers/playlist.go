@@ -32,6 +32,17 @@ func (h *PlaylistHandler) HandleGetPlaylists(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Add "Liked Songs" as a special playlist option
+	likedSongsPlaylist := spotify.Playlist{
+		ID:   "liked_songs",
+		Name: "Liked Songs",
+		Images: []spotify.PlaylistImage{},
+		Tracks: spotify.TracksInfo{Total: 0}, // We don't know the count without fetching
+	}
+
+	// Prepend liked songs to the list
+	allPlaylists := append([]spotify.Playlist{likedSongsPlaylist}, playlists...)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(playlists)
+	json.NewEncoder(w).Encode(allPlaylists)
 }
