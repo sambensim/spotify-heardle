@@ -19,16 +19,13 @@ type GameHandler struct {
 }
 
 type startGameRequest struct {
-	PlaylistID string `json:"playlistId"`
+	PlaylistIDs []string `json:"playlistIds"`
 }
 
 type startGameResponse struct {
 	SessionID     string `json:"sessionId"`
 	AudioDuration int    `json:"audioDuration"`
 	TrackURI      string `json:"trackUri"`
-	SkipsUsed     int    `json:"skipsUsed"`
-	CanSkip       bool   `json:"canSkip"`
-	PlaylistID    string `json:"playlistId"`
 }
 
 type submitGuessRequest struct {
@@ -43,8 +40,6 @@ type submitGuessResponse struct {
 	Won           bool          `json:"won"`
 	GuessesUsed   int           `json:"guessesUsed"`
 	AudioDuration int           `json:"audioDuration"`
-	SkipsUsed     int           `json:"skipsUsed"`
-	CanSkip       bool          `json:"canSkip"`
 	CorrectSong   *models.Track `json:"correctSong,omitempty"`
 }
 
@@ -53,11 +48,7 @@ type skipRequest struct {
 }
 
 type skipResponse struct {
-	AudioDuration int           `json:"audioDuration"`
-	SkipsUsed     int           `json:"skipsUsed"`
-	CanSkip       bool          `json:"canSkip"`
-	IsComplete    bool          `json:"isComplete"`
-	CorrectSong   *models.Track `json:"correctSong,omitempty"`
+	CorrectSong models.Track `json:"correctSong"`
 }
 
 // NewGameHandler creates a new game handler.
@@ -83,8 +74,13 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.PlaylistIDs) == 0 {
+		http.Error(w, "At least one playlist ID required", http.StatusBadRequest)
+		return
+	}
+
 	client := spotify.NewClient(user.Token)
-	tracks, err := client.GetPlaylistTracks(req.PlaylistID)
+	tracks, err := client.GetMultiplePlaylistsTracks(req.PlaylistIDs)
 	if err != nil {
 		http.Error(w, "Failed to get playlist tracks", http.StatusInternalServerError)
 		return
@@ -93,7 +89,7 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 	if len(tracks) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Playlist is empty or has no valid tracks.",
+			"error": "Playlists are empty or have no valid tracks.",
 		})
 		return
 	}
@@ -106,7 +102,7 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := models.NewGameSession(sessionID, user.ID, req.PlaylistID, selectedTrack)
+	session := models.NewGameSession(sessionID, user.ID, req.PlaylistIDs, selectedTrack)
 	if err := h.store.SaveSession(session); err != nil {
 		http.Error(w, "Failed to save session", http.StatusInternalServerError)
 		return
@@ -118,9 +114,6 @@ func (h *GameHandler) HandleStartGame(w http.ResponseWriter, r *http.Request) {
 		SessionID:     sessionID,
 		AudioDuration: session.GetAudioDuration(),
 		TrackURI:      trackURI,
-		SkipsUsed:     session.SkipsUsed,
-		CanSkip:       session.CanSkip(),
-		PlaylistID:    req.PlaylistID,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -173,8 +166,6 @@ func (h *GameHandler) HandleSubmitGuess(w http.ResponseWriter, r *http.Request) 
 		Won:           session.Won,
 		GuessesUsed:   session.GuessesUsed,
 		AudioDuration: session.GetAudioDuration(),
-		SkipsUsed:     session.SkipsUsed,
-		CanSkip:       session.CanSkip(),
 	}
 
 	if session.IsComplete {
@@ -185,7 +176,7 @@ func (h *GameHandler) HandleSubmitGuess(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 }
 
-// HandleSkip skips the current game and reveals more audio, or reveals the answer if cannot skip.
+// HandleSkip skips the current game and reveals the answer.
 func (h *GameHandler) HandleSkip(w http.ResponseWriter, r *http.Request) {
 	user, err := h.auth.GetUserFromSession(r)
 	if err != nil {
@@ -210,42 +201,15 @@ func (h *GameHandler) HandleSkip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if session.IsComplete {
-		http.Error(w, "Game already complete", http.StatusBadRequest)
-		return
+	session.MarkComplete(false)
+	h.store.SaveSession(session)
+
+	response := skipResponse{
+		CorrectSong: session.CorrectSong,
 	}
 
-	// Check if we can skip or if we need to give up
-	if session.CanSkip() {
-		// Skip - reveal more audio
-		session.Skip()
-		h.store.SaveSession(session)
-
-		response := skipResponse{
-			AudioDuration: session.GetAudioDuration(),
-			SkipsUsed:     session.SkipsUsed,
-			CanSkip:       session.CanSkip(),
-			IsComplete:    false,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
-	} else {
-		// Give up - end the game and show answer
-		session.MarkComplete(false)
-		h.store.SaveSession(session)
-
-		response := skipResponse{
-			AudioDuration: session.GetAudioDuration(),
-			SkipsUsed:     session.SkipsUsed,
-			CanSkip:       false,
-			IsComplete:    true,
-			CorrectSong:   &session.CorrectSong,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
-	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func filterTracksWithPreview(tracks []models.Track) []models.Track {

@@ -51,11 +51,11 @@ func TestGetUserNotFound(t *testing.T) {
 func TestSaveAndGetSession(t *testing.T) {
 	store := NewMemoryStore()
 	session := &models.GameSession{
-		ID:          "session123",
-		UserID:      "user456",
-		PlaylistID:  "playlist789",
-		CorrectSong: models.Track{ID: "track1"},
-		GuessesUsed: 0,
+		ID:           "session123",
+		UserID:       "user456",
+		PlaylistIDs:  []string{"playlist789"},
+		CorrectSong:  models.Track{ID: "track1"},
+		GuessesUsed:  0,
 	}
 
 	err := store.SaveSession(session)

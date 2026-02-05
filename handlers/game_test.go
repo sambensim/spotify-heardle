@@ -39,7 +39,7 @@ func TestHandleStartGameNoAuth(t *testing.T) {
 	authHandler := NewAuthHandler(cfg, store)
 	handler := NewGameHandler(authHandler, store)
 
-	body := bytes.NewBufferString(`{"playlistId":"playlist123"}`)
+	body := bytes.NewBufferString(`{"playlistIds":["playlist123"]}`)
 	req := httptest.NewRequest("POST", "/api/game/start", body)
 	w := httptest.NewRecorder()
 

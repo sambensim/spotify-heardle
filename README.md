@@ -5,14 +5,14 @@ A web-based music guessing game inspired by Heardle, where users can play with t
 ## Features
 
 - Spotify OAuth authentication
-- Choose from your own playlists
+- **Multiple playlist selection** - Choose one or more playlists to play from
+- **Liked Songs support** - Play using your saved/liked tracks
+- Songs are randomly selected from the combined pool of all selected playlists
 - **Full track playback** using Spotify Web Playback SDK
-
-- Progressive audio reveal (1s → 3s → 6s → 10s → 15s)
-- Skip to hear more without guessing
+- Progressive audio reveal (1s → 2s → 4s)
 - 3 guesses per game
 - Search Spotify tracks to make guesses
-- Unlimited plays with the same playlist
+- Unlimited plays
 
 ## Prerequisites
 
@@ -84,8 +84,7 @@ go test ./path/to/package -run TestName
 - **Web Playback SDK**: Requires Spotify Premium and uses the browser-based player
 - **Authentication**: OAuth 2.0 with PKCE flow
 - **Storage**: In-memory (sessions cleared on restart)
-- **Audio Duration**: Progressively reveals 1s → 3s → 6s → 10s → 15s clips
-- **Skip Limit**: Can skip until total revealed audio would exceed 60 seconds
+- **Audio Duration**: Progressively reveals 1s → 2s → 4s clips
 
 ## Troubleshooting
 

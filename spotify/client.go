@@ -68,6 +68,12 @@ type searchResponse struct {
 	} `json:"tracks"`
 }
 
+type savedTracksResponse struct {
+	Items []struct {
+		Track trackInfo `json:"track"`
+	} `json:"items"`
+}
+
 // NewClient creates a new Spotify API client.
 func NewClient(token *models.Token) *Client {
 	return &Client{token: token}
@@ -159,6 +165,72 @@ func (c *Client) SearchTracks(query string) ([]models.Track, error) {
 	}
 
 	return tracks, nil
+}
+
+// GetLikedSongs retrieves the current user's liked/saved tracks.
+func (c *Client) GetLikedSongs() ([]models.Track, error) {
+	endpoint := apiBaseURL + "/me/tracks?limit=50"
+	
+	var response savedTracksResponse
+	if err := c.makeRequest("GET", endpoint, &response); err != nil {
+		return nil, fmt.Errorf("getting liked songs: %w", err)
+	}
+
+	tracks := make([]models.Track, 0, len(response.Items))
+	for _, item := range response.Items {
+		if item.Track.ID == "" {
+			continue
+		}
+		
+		var artists []string
+		if len(item.Track.Artists) > 0 {
+			artists = make([]string, len(item.Track.Artists))
+			for i, artist := range item.Track.Artists {
+				artists[i] = artist.Name
+			}
+		}
+
+		tracks = append(tracks, models.Track{
+			ID:         item.Track.ID,
+			Name:       item.Track.Name,
+			Artists:    artists,
+			PreviewURL: item.Track.PreviewURL,
+		})
+	}
+
+	return tracks, nil
+}
+
+// GetMultiplePlaylistsTracks retrieves tracks from multiple playlists and combines them.
+func (c *Client) GetMultiplePlaylistsTracks(playlistIDs []string) ([]models.Track, error) {
+	allTracks := make([]models.Track, 0)
+	trackSeen := make(map[string]bool)
+
+	for _, playlistID := range playlistIDs {
+		var tracks []models.Track
+		var err error
+
+		// Special case for liked songs
+		if playlistID == "liked_songs" {
+			tracks, err = c.GetLikedSongs()
+		} else {
+			tracks, err = c.GetPlaylistTracks(playlistID)
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("getting tracks from playlist %s: %w", playlistID, err)
+		}
+
+		// Deduplicate tracks by ID
+		for _, track := range tracks {
+			if !trackSeen[track.ID] {
+				trackSeen[track.ID] = true
+				allTracks = append(allTracks, track)
+			}
+		}
+	}
+
+	return allTracks, nil
 }
 
 func (c *Client) makeRequest(method, endpoint string, result interface{}) error {

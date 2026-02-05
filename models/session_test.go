@@ -8,7 +8,7 @@ import (
 func TestNewGameSession(t *testing.T) {
 	sessionID := "session123"
 	userID := "user456"
-	playlistID := "playlist789"
+	playlistIDs := []string{"playlist789"}
 	correctSong := Track{
 		ID:         "track1",
 		Name:       "Song Name",
@@ -16,7 +16,7 @@ func TestNewGameSession(t *testing.T) {
 		PreviewURL: "http://preview.url",
 	}
 
-	session := NewGameSession(sessionID, userID, playlistID, correctSong)
+	session := NewGameSession(sessionID, userID, playlistIDs, correctSong)
 
 	if session.ID != sessionID {
 		t.Errorf("ID = %q, want %q", session.ID, sessionID)
@@ -26,8 +26,8 @@ func TestNewGameSession(t *testing.T) {
 		t.Errorf("UserID = %q, want %q", session.UserID, userID)
 	}
 
-	if session.PlaylistID != playlistID {
-		t.Errorf("PlaylistID = %q, want %q", session.PlaylistID, playlistID)
+	if len(session.PlaylistIDs) != 1 || session.PlaylistIDs[0] != playlistIDs[0] {
+		t.Errorf("PlaylistIDs = %v, want %v", session.PlaylistIDs, playlistIDs)
 	}
 
 	if session.CorrectSong.ID != correctSong.ID {
@@ -53,12 +53,12 @@ func TestNewGameSession(t *testing.T) {
 
 func TestGameSessionAddGuess(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 0,
-		IsComplete:  false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  0,
+		IsComplete:   false,
 	}
 
 	guess := Guess{
@@ -84,13 +84,13 @@ func TestGameSessionAddGuess(t *testing.T) {
 
 func TestGameSessionAddCorrectGuess(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 0,
-		IsComplete:  false,
-		Won:         false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  0,
+		IsComplete:   false,
+		Won:          false,
 	}
 
 	correctGuess := Guess{
@@ -112,13 +112,13 @@ func TestGameSessionAddCorrectGuess(t *testing.T) {
 
 func TestGameSessionAddGuessReachesMax(t *testing.T) {
 	session := &GameSession{
-		ID:          "session1",
-		UserID:      "user1",
-		PlaylistID:  "playlist1",
-		CorrectSong: Track{ID: "correct_track"},
-		GuessesUsed: 2,
-		IsComplete:  false,
-		Won:         false,
+		ID:           "session1",
+		UserID:       "user1",
+		PlaylistIDs:  []string{"playlist1"},
+		CorrectSong:  Track{ID: "correct_track"},
+		GuessesUsed:  2,
+		IsComplete:   false,
+		Won:          false,
 		Guesses: []Guess{
 			{TrackID: "wrong1", IsCorrect: false},
 			{TrackID: "wrong2", IsCorrect: false},
@@ -150,25 +150,17 @@ func TestGameSessionGetAudioDuration(t *testing.T) {
 	tests := []struct {
 		name        string
 		guessesUsed int
-		skipsUsed   int
 		want        int
 	}{
-		{"first attempt", 0, 0, 1},
-		{"after one guess", 1, 0, 3},
-		{"after two guesses", 2, 0, 6},
-		{"after one skip", 0, 1, 3},
-		{"after one guess and one skip", 1, 1, 6},
-		{"after two skips", 0, 2, 6},
-		{"max duration", 5, 0, 20},  // 15 + (1 * 5)
-		{"beyond max", 6, 0, 25},     // 15 + (2 * 5)
+		{"first guess", 0, 1},
+		{"second guess", 1, 2},
+		{"third guess", 2, 4},
+		{"beyond max", 3, 4},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			session := &GameSession{
-				GuessesUsed: tt.guessesUsed,
-				SkipsUsed:   tt.skipsUsed,
-			}
+			session := &GameSession{GuessesUsed: tt.guessesUsed}
 			got := session.GetAudioDuration()
 			if got != tt.want {
 				t.Errorf("GetAudioDuration() = %d, want %d", got, tt.want)
@@ -191,110 +183,5 @@ func TestGameSessionMarkComplete(t *testing.T) {
 
 	if !session.Won {
 		t.Error("Won = false, want true")
-	}
-}
-
-func TestGameSessionGetTotalAudioDuration(t *testing.T) {
-	tests := []struct {
-		name        string
-		guessesUsed int
-		skipsUsed   int
-		want        int
-	}{
-		{"no guesses or skips", 0, 0, 0},
-		{"one guess", 1, 0, 1},
-		{"two guesses", 2, 0, 3},   // cumulative: 1s + 2s more
-		{"one skip", 0, 1, 1},
-		{"one guess and one skip", 1, 1, 3}, // cumulative: 1s + 2s more
-		{"three total", 2, 1, 6},   // cumulative: 1s + 2s + 3s more
-		{"five total", 3, 2, 15},   // cumulative: 1s + 2s + 3s + 4s + 5s more
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			session := &GameSession{
-				GuessesUsed: tt.guessesUsed,
-				SkipsUsed:   tt.skipsUsed,
-			}
-			got := session.GetTotalAudioDuration()
-			if got != tt.want {
-				t.Errorf("GetTotalAudioDuration() = %d, want %d", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGameSessionGetNextAudioDuration(t *testing.T) {
-	tests := []struct {
-		name        string
-		guessesUsed int
-		skipsUsed   int
-		want        int
-	}{
-		{"first attempt", 0, 0, 1},
-		{"second attempt", 1, 0, 3},
-		{"third attempt", 0, 2, 6},
-		{"fourth attempt", 2, 1, 10},
-		{"fifth attempt", 3, 1, 15},
-		{"beyond fifth", 4, 1, 20}, // 15 + (1 * 5)
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			session := &GameSession{
-				GuessesUsed: tt.guessesUsed,
-				SkipsUsed:   tt.skipsUsed,
-			}
-			got := session.GetNextAudioDuration()
-			if got != tt.want {
-				t.Errorf("GetNextAudioDuration() = %d, want %d", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGameSessionCanSkip(t *testing.T) {
-	tests := []struct {
-		name        string
-		guessesUsed int
-		skipsUsed   int
-		isComplete  bool
-		want        bool
-	}{
-		{"can skip at start", 0, 0, false, true},
-		{"can skip after one", 1, 0, false, true},
-		{"can skip after two", 0, 2, false, true},
-		{"can skip at 15 seconds", 2, 2, false, true},     // cumulative: 10s revealed, next is 15s total
-		{"can skip at 15 seconds total", 3, 1, false, true},  // cumulative: 10s revealed, next is 15s total
-		{"can skip at 20 seconds", 4, 1, false, true}, // cumulative: 15s revealed, next would be 20s total (15s + 5s more)
-		{"cannot skip at 65 seconds", 0, 14, false, false}, // cumulative: 60s revealed, next would be 65s total (60s + 5s more)
-		{"cannot skip when complete", 1, 1, true, false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			session := &GameSession{
-				GuessesUsed: tt.guessesUsed,
-				SkipsUsed:   tt.skipsUsed,
-				IsComplete:  tt.isComplete,
-			}
-			got := session.CanSkip()
-			if got != tt.want {
-				t.Errorf("CanSkip() = %v, want %v (total=%d, next=%d)", 
-					got, tt.want, session.GetTotalAudioDuration(), session.GetNextAudioDuration())
-			}
-		})
-	}
-}
-
-func TestGameSessionSkip(t *testing.T) {
-	session := &GameSession{
-		SkipsUsed: 0,
-	}
-
-	session.Skip()
-
-	if session.SkipsUsed != 1 {
-		t.Errorf("SkipsUsed = %d, want 1", session.SkipsUsed)
 	}
 }
