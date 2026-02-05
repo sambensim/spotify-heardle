@@ -19,10 +19,10 @@ type Client struct {
 
 // Playlist represents a Spotify playlist.
 type Playlist struct {
-	ID     string         `json:"id"`
-	Name   string         `json:"name"`
+	ID     string          `json:"id"`
+	Name   string          `json:"name"`
 	Images []PlaylistImage `json:"images"`
-	Tracks TracksInfo     `json:"tracks"`
+	Tracks TracksInfo      `json:"tracks"`
 }
 
 // PlaylistImage represents a playlist cover image.
@@ -82,7 +82,7 @@ func NewClient(token *models.Token) *Client {
 // GetUserProfile retrieves the current user's profile.
 func (c *Client) GetUserProfile() (*UserProfile, error) {
 	endpoint := apiBaseURL + "/me"
-	
+
 	var profile UserProfile
 	if err := c.makeRequest("GET", endpoint, &profile); err != nil {
 		return nil, fmt.Errorf("getting user profile: %w", err)
@@ -94,7 +94,7 @@ func (c *Client) GetUserProfile() (*UserProfile, error) {
 // GetUserPlaylists retrieves the current user's playlists.
 func (c *Client) GetUserPlaylists() ([]Playlist, error) {
 	endpoint := apiBaseURL + "/me/playlists?limit=50"
-	
+
 	var response playlistsResponse
 	if err := c.makeRequest("GET", endpoint, &response); err != nil {
 		return nil, fmt.Errorf("getting playlists: %w", err)
@@ -106,7 +106,7 @@ func (c *Client) GetUserPlaylists() ([]Playlist, error) {
 // GetPlaylistTracks retrieves tracks from a playlist.
 func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
 	endpoint := fmt.Sprintf("%s/playlists/%s/tracks?limit=100", apiBaseURL, playlistID)
-	
+
 	var response playlistTracksResponse
 	if err := c.makeRequest("GET", endpoint, &response); err != nil {
 		return nil, fmt.Errorf("getting playlist tracks: %w", err)
@@ -117,7 +117,7 @@ func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
 		if item.Track.ID == "" {
 			continue
 		}
-		
+
 		artists := make([]string, 0)
 		if len(item.Track.Artists) > 0 {
 			artists = make([]string, len(item.Track.Artists))
@@ -140,7 +140,7 @@ func (c *Client) GetPlaylistTracks(playlistID string) ([]models.Track, error) {
 // SearchTracks searches for tracks by query.
 func (c *Client) SearchTracks(query string) ([]models.Track, error) {
 	endpoint := fmt.Sprintf("%s/search?q=%s&type=track&limit=20", apiBaseURL, url.QueryEscape(query))
-	
+
 	var response searchResponse
 	if err := c.makeRequest("GET", endpoint, &response); err != nil {
 		return nil, fmt.Errorf("searching tracks: %w", err)
@@ -170,7 +170,7 @@ func (c *Client) SearchTracks(query string) ([]models.Track, error) {
 // GetLikedSongs retrieves the current user's liked/saved tracks.
 func (c *Client) GetLikedSongs() ([]models.Track, error) {
 	endpoint := apiBaseURL + "/me/tracks?limit=50"
-	
+
 	var response savedTracksResponse
 	if err := c.makeRequest("GET", endpoint, &response); err != nil {
 		return nil, fmt.Errorf("getting liked songs: %w", err)
@@ -181,7 +181,7 @@ func (c *Client) GetLikedSongs() ([]models.Track, error) {
 		if item.Track.ID == "" {
 			continue
 		}
-		
+
 		var artists []string
 		if len(item.Track.Artists) > 0 {
 			artists = make([]string, len(item.Track.Artists))

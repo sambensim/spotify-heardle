@@ -46,11 +46,11 @@ func TestGetAuthURL(t *testing.T) {
 	if len(url) < len(expectedPrefix) || url[:len(expectedPrefix)] != expectedPrefix {
 		t.Errorf("URL doesn't start with expected prefix. Got: %s", url)
 	}
-	
+
 	if !strings.Contains(url, "streaming") {
 		t.Error("URL missing 'streaming' scope")
 	}
-	
+
 	if !strings.Contains(url, "user-modify-playback-state") {
 		t.Error("URL missing 'user-modify-playback-state' scope")
 	}
@@ -79,7 +79,7 @@ func TestCalculateExpiresAt(t *testing.T) {
 
 func TestParseTokenResponse(t *testing.T) {
 	auth := &AuthManager{}
-	
+
 	tokenResp := tokenResponse{
 		AccessToken:  "access_token_123",
 		RefreshToken: "refresh_token_456",

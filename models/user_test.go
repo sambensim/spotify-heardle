@@ -8,9 +8,9 @@ import (
 
 func TestTokenIsExpired(t *testing.T) {
 	tests := []struct {
-		name    string
-		token   *Token
-		want    bool
+		name  string
+		token *Token
+		want  bool
 	}{
 		{
 			name: "expired token",
