@@ -26,10 +26,10 @@ async function searchTracks(query) {
     return fetchAPI(`/api/search?q=${encodeURIComponent(query)}`);
 }
 
-async function startGame(playlistId) {
+async function startGame(playlistIds) {
     return fetchAPI('/api/game/start', {
         method: 'POST',
-        body: JSON.stringify({ playlistId }),
+        body: JSON.stringify({ playlistIds }),
     });
 }
 

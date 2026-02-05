@@ -2,19 +2,37 @@
 let gameState = {
     sessionId: null,
     guessesUsed: 0,
-    skipsUsed: 0,
     audioDuration: 1,
     trackUri: null,
     isComplete: false,
-    canSkip: true,
-    playlistId: null,
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const playlistId = urlParams.get('playlist');
+    const playlistsParam = urlParams.get('playlists');
+    const legacyPlaylistId = urlParams.get('playlist');
 
-    if (!playlistId) {
+    let playlistIds = [];
+    
+    // Support new multi-playlist format
+    if (playlistsParam) {
+        try {
+            playlistIds = JSON.parse(decodeURIComponent(playlistsParam));
+        } catch (e) {
+            showError('Invalid playlist parameter');
+            return;
+        }
+    } 
+    // Backward compatibility with old single playlist format
+    else if (legacyPlaylistId) {
+        playlistIds = [legacyPlaylistId];
+    } 
+    else {
+        showError('No playlist selected');
+        return;
+    }
+
+    if (!Array.isArray(playlistIds) || playlistIds.length === 0) {
         showError('No playlist selected');
         return;
     }
@@ -23,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeSpotifyPlayer();
     
     showLoadingMessage('Starting game...');
-    await initializeGame(playlistId);
+    await initializeGame(playlistIds);
     initSearch();
 });
 
@@ -35,20 +53,17 @@ function showLoadingMessage(message) {
     }
 }
 
-async function initializeGame(playlistId) {
+async function initializeGame(playlistIds) {
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const gameContainer = document.getElementById('game-container');
 
     try {
-        const response = await startGame(playlistId);
+        const response = await startGame(playlistIds);
         
         gameState.sessionId = response.sessionId;
         gameState.audioDuration = response.audioDuration;
         gameState.trackUri = response.trackUri;
-        gameState.skipsUsed = response.skipsUsed;
-        gameState.canSkip = response.canSkip;
-        gameState.playlistId = response.playlistId;
 
         updateGameUI();
 
@@ -102,8 +117,6 @@ async function handleGuess(trackId, trackName) {
         gameState.guessesUsed = response.guessesUsed;
         gameState.audioDuration = response.audioDuration;
         gameState.isComplete = response.isComplete;
-        gameState.skipsUsed = response.skipsUsed;
-        gameState.canSkip = response.canSkip;
 
         addGuessToList(trackName, response.isCorrect);
         updateGameUI();
@@ -122,20 +135,14 @@ async function handleGuess(trackId, trackName) {
 }
 
 async function skipGame() {
+    if (!confirm('Are you sure you want to skip and see the answer?')) {
+        return;
+    }
+
     try {
         const response = await skipCurrentGame(gameState.sessionId);
-        
-        gameState.audioDuration = response.audioDuration;
-        gameState.skipsUsed = response.skipsUsed;
-        gameState.canSkip = response.canSkip;
-        gameState.isComplete = response.isComplete;
-
-        updateGameUI();
-
-        if (response.isComplete) {
-            // Give up - show the answer
-            showResult(false, response.correctSong);
-        }
+        gameState.isComplete = true;
+        showResult(false, response.correctSong);
     } catch (error) {
         console.error('Skip failed:', error);
         showError('Failed to skip');
@@ -147,22 +154,11 @@ function updateGameUI() {
     document.getElementById('audio-duration').textContent = gameState.audioDuration;
 
     const skipBtn = document.getElementById('skip-btn');
-    const giveUpBtn = document.getElementById('give-up-btn');
     const searchSection = document.getElementById('search-section');
     
     if (gameState.isComplete) {
         skipBtn.style.display = 'none';
-        giveUpBtn.style.display = 'none';
         searchSection.style.display = 'none';
-    } else {
-        // Show skip or give up button based on canSkip
-        if (gameState.canSkip) {
-            skipBtn.style.display = 'inline-block';
-            giveUpBtn.style.display = 'none';
-        } else {
-            skipBtn.style.display = 'none';
-            giveUpBtn.style.display = 'inline-block';
-        }
     }
 }
 
@@ -200,11 +196,5 @@ function showError(message) {
 }
 
 function newGame() {
-    if (gameState.playlistId) {
-        // Restart with the same playlist
-        window.location.href = `/game.html?playlist=${gameState.playlistId}`;
-    } else {
-        // Go back to playlist selection
-        window.location.href = '/playlists.html';
-    }
+    window.location.href = '/playlists.html';
 }

@@ -53,7 +53,7 @@ func TestSaveAndGetSession(t *testing.T) {
 	session := &models.GameSession{
 		ID:          "session123",
 		UserID:      "user456",
-		PlaylistID:  "playlist789",
+		PlaylistIDs: []string{"playlist789"},
 		CorrectSong: models.Track{ID: "track1"},
 		GuessesUsed: 0,
 	}
